@@ -1,6 +1,6 @@
 import {getData} from './until'
 function render(container, state) {
-  const {data} = state
+  const {data, page, searchStr} = state
   let listHtml = ''
   if (data.length > 0) {
     let itemsHtml = data
@@ -18,23 +18,45 @@ function render(container, state) {
   let appHtml = searchHtml + listHtml + buttonsHtml
   container.innerHTML = appHtml
   let input = document.getElementById('search')
-  input.value = state.searchStr
+  input.value = searchStr
   input.addEventListener('change', event => {
     let value = event.target.value
     setState(container, state, {searchStr: value})
   })
   document.getElementById('go').addEventListener('click', async () => {
     let data = await getData({
-      query: state.searchStr,
+      query: searchStr,
       limit: 10,
       page: 1,
     })
-    console.log(data)
     setState(container, state, {data: state.data.concat(data.results)})
   })
+  let beforeButton = document
+    .getElementById('before')
+    .addEventListener('click', async () => {
+      console.log('click', page)
+      if (page <= 1) {
+        return
+      }
+      let data = await getData({
+        query: searchStr,
+        limit: 10,
+        page: page,
+      })
+      setState(container, state, {data: state.data.concat(data.results)})
+    })
+  let afterButton = document
+    .getElementById('after')
+    .addEventListener('click', async () => {
+      let data = await getData({
+        query: searchStr,
+        limit: 10,
+        page: page + 1,
+      })
+      setState(container, state, {data: state.data.concat(data.results)})
+    })
 }
 function createListItem(element) {
-  console.log(element)
   const template = `<li class='item'>
     <img src='${element.image_url}' onerror="this.src='./error.jpeg'; this.onerror=null;"  />
     <p>${element.title}</p>
@@ -52,7 +74,6 @@ async function initialize() {
     limit: 10,
     page: 1,
   })
-  console.log(data)
   const state = {data: data.results, page: 1, searchStr: ''}
   const container = document.getElementById('app')
   render(container, state)
