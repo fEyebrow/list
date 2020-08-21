@@ -10,21 +10,27 @@ function render(container, state) {
       .join()
     listHtml = `<ul class="list" >${itemsHtml}</ul>`
   }
-  let searchHtml = '<input id="search" />'
+  let searchHtml = '<div><input id="search" /><button id="go">go</button></div>'
   let buttonsHtml = `<div>
     <button id='before'>上一页</button>
     <button id='after'>下一页</button>
   </div>`
   let appHtml = searchHtml + listHtml + buttonsHtml
   container.innerHTML = appHtml
-  document.getElementById('search').addEventListener('input', async event => {
+  let input = document.getElementById('search')
+  input.value = state.searchStr
+  input.addEventListener('change', event => {
+    let value = event.target.value
+    setState(container, state, {searchStr: value})
+  })
+  document.getElementById('go').addEventListener('click', async () => {
     let data = await getData({
-      query: event.target.value,
+      query: state.searchStr,
       limit: 10,
       page: 1,
     })
     console.log(data)
-    // setState(container, state, {data: state.data.concat(data)})
+    setState(container, state, {data: state.data.concat(data.results)})
   })
 }
 function createListItem(element) {
@@ -33,7 +39,7 @@ function createListItem(element) {
     <img src='${element.image_url}' onerror="this.src='./error.jpeg'; this.onerror=null;"  />
     <p>${element.title}</p>
   </li>`
-  return element
+  return template
 }
 
 function setState(container, oldState, change) {
@@ -47,7 +53,7 @@ async function initialize() {
     page: 1,
   })
   console.log(data)
-  const state = {data: data.results, page: 1}
+  const state = {data: data.results, page: 1, searchStr: ''}
   const container = document.getElementById('app')
   render(container, state)
 }
