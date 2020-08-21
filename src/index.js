@@ -41,7 +41,7 @@ function render(container, state) {
       let data = await getData({
         query: searchStr,
         limit: 10,
-        page: page,
+        page: page - 1,
       })
       setState(container, state, {data: state.data.concat(data.results)})
     })
